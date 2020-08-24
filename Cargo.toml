@@ -1,0 +1,13 @@
+[package]
+name = "bsc"
+version = "0.1.0"
+authors = ["Maxime Tricoire <max.tricoire@gmail.com>"]
+edition = "2018"
+description = "Yet another tiny beanstalkd CLI"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "2.33.3"
+beanstalkc = "0.2.9"
