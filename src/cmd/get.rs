@@ -43,7 +43,7 @@ pub fn call(opts: &IOptions, cmd: &ArgMatches) {
   }
   match result {
     Ok(mut job) => {
-      println!("{:?}", job.body());
+      println!("{}", job.body());
       if cmd.is_present("delete") {
         job.delete().unwrap();
       } else {
