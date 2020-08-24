@@ -1,6 +1,6 @@
 [package]
 name = "bsc"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Maxime Tricoire <max.tricoire@gmail.com>"]
 edition = "2018"
 description = "Yet another tiny beanstalkd CLI"
