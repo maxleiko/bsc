@@ -5,6 +5,11 @@ authors = ["Maxime Tricoire <max.tricoire@gmail.com>"]
 edition = "2018"
 description = "Yet another tiny beanstalkd CLI"
 license = "MIT"
+repository = "https://github.com/maxleiko/bsc"
+homepage = "https://github.com/maxleiko/bsc"
+readme = "README.md"
+keywords = ["beanstalkd", "beanstalk", "cli"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 clap = "2.33.3"
