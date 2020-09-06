@@ -1,9 +1,10 @@
-extern crate beanstalkc;
 extern crate clap;
 
-use clap::{App, Arg};
 mod cmd;
 mod utils;
+mod beanstalk;
+
+use clap::{App, Arg};
 
 #[derive(Debug)]
 pub struct IOptions {

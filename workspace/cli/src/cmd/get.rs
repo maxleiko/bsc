@@ -1,7 +1,8 @@
 use crate::utils;
 use crate::IOptions;
+use crate::beanstalk::Beanstalk;
 use clap::{App, Arg, ArgMatches, SubCommand};
-use std::time::Duration;
+// use std::time::Duration;
 
 pub fn create() -> App<'static, 'static> {
   SubCommand::with_name("get")
@@ -28,28 +29,29 @@ pub fn create() -> App<'static, 'static> {
 
 pub fn call(opts: &IOptions, cmd: &ArgMatches) {
   let timeout = cmd.value_of("timeout").unwrap().parse::<u64>().unwrap();
-  let mut client = utils::beanstalkd_connect(opts);
-  if !opts.tube.eq("default") {
-    client.watch(&opts.tube).unwrap();
-    client.ignore("default").unwrap();
-  }
-  let result;
-  if timeout == 0 {
-    eprintln!("reserve on '{}' (no timeout)", opts.tube);
-    result = client.reserve();
-  } else {
-    eprintln!("reserve on '{}' (timeout: {})", opts.tube, timeout);
-    result = client.reserve_with_timeout(Duration::from_secs(timeout));
-  }
-  match result {
-    Ok(mut job) => {
-      println!("{}", job.body());
-      if cmd.is_present("delete") {
-        job.delete().unwrap();
-      } else {
-        job.release_default().unwrap();
-      }
-    }
-    Err(e) => eprintln!("{}", e),
-  }
+  let mut client = Beanstalk::new();
+  client.connect(&opts.host, opts.port).unwrap();
+  // if !opts.tube.eq("default") {
+  //   client.watch(&opts.tube).unwrap();
+  //   client.ignore("default").unwrap();
+  // }
+  // let result;
+  // if timeout == 0 {
+  //   eprintln!("reserve on '{}' (no timeout)", opts.tube);
+  //   result = client.reserve();
+  // } else {
+  //   eprintln!("reserve on '{}' (timeout: {})", opts.tube, timeout);
+  //   result = client.reserve_with_timeout(Duration::from_secs(timeout));
+  // }
+  // match result {
+  //   Ok(mut job) => {
+  //     println!("{}", job.body());
+  //     if cmd.is_present("delete") {
+  //       job.delete().unwrap();
+  //     } else {
+  //       job.release_default().unwrap();
+  //     }
+  //   }
+  //   Err(e) => eprintln!("{}", e),
+  // }
 }

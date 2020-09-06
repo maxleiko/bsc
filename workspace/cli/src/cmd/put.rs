@@ -1,7 +1,10 @@
 use crate::utils;
 use crate::IOptions;
+use crate::beanstalk::Beanstalk;
 use clap::{App, Arg, ArgMatches, SubCommand};
-use std::{io, io::Read, time::Duration};
+use std::time::Duration;
+use std::io;
+// use std::io::prelude::*;
 
 pub fn create() -> App<'static, 'static> {
   SubCommand::with_name("put")
@@ -45,26 +48,27 @@ fn parse(cmd: &ArgMatches) -> (u32, Duration, Duration) {
   )
 }
 
-fn read_stdin() -> String {
-  let mut buffer = String::new();
-  match io::stdin().read_to_string(&mut buffer) {
-    Ok(_) => buffer,
-    Err(e) => {
-      eprintln!("unable to read bytes from stdin (reason: {})", e);
-      std::process::exit(1);
-    }
-  }
-}
-
 pub fn call(opts: &IOptions, cmd: &ArgMatches) {
-  let (priority, delay, ttr) = parse(cmd);
-  let mut client = utils::beanstalkd_connect(opts);
-  client.use_tube(&opts.tube).unwrap();
-  match client.put(read_stdin().as_bytes(), priority, delay, ttr) {
-    Ok(id) => eprintln!("{}", id),
-    Err(e) => {
-      eprintln!("unable to put message (reason: {})", e);
-      std::process::exit(1);
-    }
-  }
+  let (_priority, _delay, _ttr) = parse(cmd);
+  let mut client = Beanstalk::new();
+  client.connect(&opts.host, opts.port).unwrap();
+  // client.use_tube(&opts.tube).unwrap();
+
+  // let stdin = io::stdin();
+  // let mut stdin = stdin.lock();
+  // let buf = match stdin.fill_buf() {
+  //   Ok(buf) => buf,
+  //   Err(e) => {
+  //     eprintln!("unable to read bytes from stdin (reason: {})", e);
+  //     std::process::exit(1);
+  //   }
+  // };
+
+  // match client.put(buf, priority, delay, ttr) {
+  //   Ok(id) => eprintln!("{}", id),
+  //   Err(e) => {
+  //     eprintln!("unable to put message (reason: {})", e);
+  //     std::process::exit(1);
+  //   }
+  // }
 }
