@@ -27,3 +27,8 @@ fn parse_finished() {
     Msg::Using("Hello"),
   ]))
 }
+
+#[test]
+fn serialize() {
+  
+}

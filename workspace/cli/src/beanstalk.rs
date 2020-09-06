@@ -53,14 +53,14 @@ impl Beanstalk {
   // }
 }
 
-#[test]
-fn connect() {
-  let mut socket = TcpStream::connect("localhost:11300").unwrap();
-  socket.set_nonblocking(true).unwrap();
+// #[test]
+// fn connect() {
+//   let mut socket = TcpStream::connect("localhost:11300").unwrap();
+//   socket.set_nonblocking(true).unwrap();
 
-  let mut buf: Vec<u8> = Vec::new();
-  loop {
-    let size =  socket.read_to_end(&mut buf).unwrap();
-  }
+//   let mut buf: Vec<u8> = Vec::new();
+//   loop {
+//     let size =  socket.read_to_end(&mut buf).unwrap();
+//   }
   
-}
+// }

@@ -1,5 +1,5 @@
-use crate::types::*;
 use crate::parser::*;
+use crate::types::*;
 
 #[derive(Debug, PartialEq)]
 pub enum Msg<'a> {
@@ -26,6 +26,71 @@ pub enum Msg<'a> {
   Released,
   Touched,
   NotIgnored,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Cmd<'a> {
+  Put {
+    pri: u32,
+    delay: u32,
+    ttr: u32,
+    payload: &'a [u8],
+  },
+  Use(&'a str),
+  Reserve,
+  ReserveJob(u64),
+  ReserveTimeout(u64),
+  Delete(u64),
+  Release {
+    id: u64,
+    pri: u32,
+    delay: u32,
+  },
+  Bury {
+    id: u64,
+    pri: u32,
+  },
+  Touch(u64),
+  Watch(&'a str),
+  Ignore(&'a str),
+  Peek(u64),
+  PeekReady,
+  PeekDelayed,
+  PeekBuried,
+  Kick(u64),
+  KickJob(u64),
+  StatsJob(u64),
+  StatsTube(&'a str),
+  Stats,
+  ListTubes,
+  ListTubeUsed,
+  ListTubesWatched,
+  Quit,
+  PauseTube {
+    tube: &'a str,
+    delay: u32,
+  },
+}
+
+static CRLF: &[u8] = "\r\n".as_bytes();
+
+impl From<Cmd<'_>> for Vec<u8> {
+  fn from(c: Cmd<'_>) -> Self {
+    match c {
+      Cmd::Put {
+        pri,
+        delay,
+        ttr,
+        payload,
+      } => {
+        let head = format!("put {} {} {} {}\r\n", pri, delay, ttr, payload.len())
+          .as_bytes()
+          .to_owned();
+        [&head, payload, CRLF].concat()
+      }
+      _ => panic!("todo"),
+    }
+  }
 }
 
 macro_rules! do_match {
@@ -256,7 +321,7 @@ fn paused<'a>(buf: &'a [u8]) -> R<'a, Msg> {
 #[cfg(test)]
 mod tests {
   use crate::protocol;
-  use crate::protocol::Msg;
+  use crate::protocol::{Cmd, Msg};
 
   #[test]
   fn inserted() {
@@ -265,7 +330,7 @@ mod tests {
       Ok(("".as_bytes(), Msg::Inserted(42))),
     );
   }
-  
+
   #[test]
   fn reserved() {
     assert_eq!(
@@ -273,7 +338,7 @@ mod tests {
       Ok(("".as_bytes(), Msg::Reserved(42, "123456".as_bytes()))),
     );
   }
-  
+
   #[test]
   fn kicked_none() {
     assert_eq!(
@@ -281,7 +346,7 @@ mod tests {
       Ok(("".as_bytes(), Msg::Kicked(None))),
     );
   }
-  
+
   #[test]
   fn kicked_some() {
     assert_eq!(
@@ -289,12 +354,24 @@ mod tests {
       Ok(("".as_bytes(), Msg::Kicked(Some(42)))),
     );
   }
-  
+
   #[test]
   fn using() {
     assert_eq!(
       protocol::using("USING foo\r\n".as_bytes()),
       Ok(("".as_bytes(), Msg::Using("foo"))),
     );
+  }
+
+  #[test]
+  fn put() {
+    let cmd: Vec<u8> = Cmd::Put {
+      pri: 1,
+      delay: 2,
+      ttr: 3,
+      payload: "123456".as_bytes(),
+    }
+    .into();
+    assert_eq!(cmd, Vec::from("put 1 2 3 6\r\n123456\r\n".as_bytes()),);
   }
 }
