@@ -69,10 +69,7 @@ pub fn is_ascii_whitespace(b: u8) -> bool {
 
 pub fn string<'a>(buf: &'a [u8]) -> R<'a, &'a str> {
   let (i, s) = take_while(buf, is_ascii_alphanumeric)?;
-  match std::str::from_utf8(s) {
-    Ok(val) => Ok((i, val)),
-    Err(e) => Err((buf, ErrorKind::NotUTF8(e))),
-  }
+  Ok((i, unsafe { std::str::from_utf8_unchecked(s) }))
 }
 
 pub fn take_while<'a>(buf: &'a [u8], func: MatchFunc) -> R<'a, &'a [u8]> {
@@ -126,15 +123,11 @@ pub fn u64<'a>(buf: &'a [u8]) -> R<'a, u64> {
     idx += 1;
   }
   if start != idx {
-    // not sure that the safe from_utf8 is really needed for beanstalkd
-    // because it is supposed to be ASCII, but by doing so we could potentially
-    // re-use this parser for any other protocol implementation
-    return match std::str::from_utf8(&buf[..idx]) {
-      Ok(val) => match val.parse() {
-        Ok(val) => Ok((&buf[idx..], val)),
-        Err(e) => Err((buf, ErrorKind::Integer(e))),
-      },
-      Err(e) => Err((buf, ErrorKind::NotUTF8(e))),
+    // we can go unsafe here because we just `is_ascii_digit`-ed them
+    let str = unsafe { std::str::from_utf8_unchecked(&buf[..idx]) };
+    return match str.parse() {
+      Ok(val) => Ok((&buf[idx..], val)),
+      Err(e) => Err((buf, ErrorKind::Integer(e))),
     };
   }
 

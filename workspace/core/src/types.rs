@@ -3,7 +3,6 @@ use std::collections::HashMap;
 pub enum ErrorKind {
   Integer(std::num::ParseIntError),
   Float(std::num::ParseFloatError),
-  NotUTF8(std::str::Utf8Error),
   NotMatched,
   EOF,
 }

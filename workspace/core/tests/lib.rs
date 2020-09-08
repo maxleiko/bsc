@@ -11,8 +11,8 @@ fn parse_unfinished() {
   let res = protocol::parse(buf, &mut msgs);
   assert_eq!(res, Err(("USI".as_bytes(), ErrorKind::NotMatched)));
   assert_eq!(msgs, Vec::from([
-    Msg::Reserved(42, "123".as_bytes()),
-    Msg::Using("Hello"),
+    Msg::Reserved(42, Vec::from("123")),
+    Msg::Using(String::from("Hello")),
   ]))
 }
 
@@ -23,8 +23,8 @@ fn parse_finished() {
   let res = protocol::parse(buf, &mut msgs);
   assert_eq!(res, Ok(("".as_bytes(), ())));
   assert_eq!(msgs, Vec::from([
-    Msg::Reserved(42, "123".as_bytes()),
-    Msg::Using("Hello"),
+    Msg::Reserved(42, Vec::from("123")),
+    Msg::Using(String::from("Hello")),
   ]))
 }
 

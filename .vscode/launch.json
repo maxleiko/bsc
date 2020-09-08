@@ -1,0 +1,102 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'bsc_core'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=bsc_core"
+        ],
+        "filter": {
+          "name": "bsc_core",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'lib'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=lib",
+          "--package=bsc_core"
+        ],
+        "filter": {
+          "name": "lib",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'bsc'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=bsc"
+        ],
+        "filter": {
+          "name": "bsc",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'bsc'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=bsc",
+          "--package=bsc"
+        ],
+        "filter": {
+          "name": "bsc",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'bsc'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=bsc",
+          "--package=bsc"
+        ],
+        "filter": {
+          "name": "bsc",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
