@@ -1,8 +1,0 @@
-[package]
-name = "bsc_core"
-version = "0.1.0"
-authors = ["Maxime Tricoire <max.tricoire@gmail.com>"]
-edition = "2018"
-
-[[test]]
-name = "lib"
