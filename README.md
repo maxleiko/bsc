@@ -13,3 +13,6 @@ cargo install bsc
 ```sh
 bsc --help
 ```
+
+## Example
+![bsc example](bsc_example.gif)

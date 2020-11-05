@@ -1,6 +1,6 @@
 [package]
 name = "bsc"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Maxime Tricoire <max.tricoire@gmail.com>"]
 edition = "2018"
 readme = "README.md"

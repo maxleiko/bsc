@@ -20,7 +20,7 @@ pub struct IOptions {
 
 fn main() -> Result<(), Box<dyn Error>>{
   let app = App::new("bsc")
-    .version("0.1.0")
+    .version("0.1.4")
     .about("A Beanstalkd client written in Rust")
     .arg(
       Arg::with_name("host")
