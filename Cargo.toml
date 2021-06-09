@@ -18,3 +18,4 @@ path = "src/main.rs"
 [dependencies]
 clap = "2.33"
 beanstalkc = "1.0"
+thiserror = "1.0.25"

@@ -1,8 +1,6 @@
-extern crate clap;
-extern crate beanstalkc;
-
 mod cmd;
 mod utils;
+mod lib;
 
 use std::{time::Duration, error::Error};
 
