@@ -11,21 +11,18 @@ pub type Id = u32;
 pub struct Beanstalk {
     reader: BufReader<TcpStream>,
     writer: BufWriter<TcpStream>,
-    max_job_size: usize,
     buf: String,
 }
 
 impl Beanstalk {
-    pub fn new<A: ToSocketAddrs>(addr: A, max_job_size: Option<usize>) -> Result<Self> {
+    pub fn connect<A: ToSocketAddrs>(addr: A) -> Result<Self> {
         let conn = TcpStream::connect(addr)?;
         let read = BufReader::new(conn.try_clone()?);
         let write = BufWriter::new(conn);
-        let max_job_size = max_job_size.unwrap_or(2_usize.pow(16));
 
         Ok(Self {
             reader: read,
             writer: write,
-            max_job_size,
             buf: String::new(),
         })
     }
@@ -60,11 +57,6 @@ impl Beanstalk {
     ///  - `data` is the job body -- a sequence of bytes of length `bytes` from the
     ///    previous line.
     pub fn put(&mut self, pri: u32, delay: Duration, ttr: u32, data: &[u8]) -> Result<PutResponse> {
-        assert!(
-            data.len() < self.max_job_size,
-            "data value must be less than max-job-size"
-        );
-
         // request
         write!(
             self.writer,
