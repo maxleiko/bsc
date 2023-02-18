@@ -1,21 +1,7 @@
-[package]
-name = "bsc"
-version = "0.1.4"
-authors = ["Maxime Tricoire <max.tricoire@gmail.com>"]
-edition = "2018"
-readme = "README.md"
-description = "A tiny command-line client for Beanstalkd"
-homepage = "https://github.com/maxleiko/bsc"
-repository = "https://github.com/maxleiko/bsc"
-keywords = ["beanstalkd", "beanstalk", "client", "cli"]
-categories = ["command-line-utilities"]
-license = "MIT"
+[workspace]
+members = ["crates/*"]
 
-[[bin]]
-name = "bsc"
-path = "src/main.rs"
-
-[dependencies]
-clap = "2.33"
-beanstalkc = "1.0"
-thiserror = "1.0.25"
+[profile.release]
+opt-level = 's'
+lto = true
+strip = true

@@ -1,0 +1,7 @@
+[package]
+name = "bsc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bsc-lib = { version = "0.1.0", path = "../lib" }
