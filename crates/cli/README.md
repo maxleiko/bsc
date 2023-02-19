@@ -1,1 +1,1 @@
-See [bsc](https://github.com/maxleiko/bsc#bsc)
+See [github.com/bsc](https://github.com/maxleiko/bsc#bsc) or [docs.rs/bsc](https://docs.rs/bsc/latest/bsc/struct.Beanstalk.html)
