@@ -1,10 +1,10 @@
 use std::time::Duration;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::Id;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct StatsJob {
     /// "id" is the job id
     pub id: Id,
@@ -47,7 +47,7 @@ pub struct StatsJob {
     pub kicks: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum State {
     Ready,
@@ -56,7 +56,7 @@ pub enum State {
     Buried,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct StatsTube {
     /// "name" is the tube's name.
     pub name: String,
@@ -110,7 +110,7 @@ pub struct StatsTube {
     pub pause_time_left: Duration,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Stats {
     /// "current-jobs-urgent" is the number of ready jobs with priority < 1024.
     #[serde(rename = "current-jobs-urgent")]
@@ -227,7 +227,11 @@ pub struct Stats {
     #[serde(rename = "rusage-stime")]
     pub rusage_stime: f32,
     /// "uptime" is the number of seconds since this server process started running.
-    #[serde(rename = "uptime", deserialize_with = "from_seconds")]
+    #[serde(
+        rename = "uptime",
+        serialize_with = "as_seconds",
+        deserialize_with = "from_seconds"
+    )]
     pub uptime: Duration,
     /// "binlog-oldest-index" is the index of the oldest binlog file needed to store the current jobs.
     #[serde(rename = "binlog-oldest-index")]
@@ -255,6 +259,13 @@ pub struct Stats {
     pub os: Option<String>,
     /// "platform" is the machine architecture as determined by uname
     pub platform: Option<String>,
+}
+
+pub fn as_seconds<S>(value: &Duration, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    value.serialize(serializer)
 }
 
 pub fn from_seconds<'de, D>(deserializer: D) -> Result<Duration, D::Error>

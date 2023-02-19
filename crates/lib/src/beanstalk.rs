@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use std::net::{TcpStream, ToSocketAddrs};
 use std::time::Duration;
@@ -71,7 +70,19 @@ impl Beanstalk {
         // response
         self.buf.clear();
         self.reader.read_line(&mut self.buf)?;
-        PutResponse::parse(self.buf.trim_end_matches("\r\n"))
+        let input = self.buf.trim_end_matches("\r\n");
+        if let Some(input) = input.strip_prefix("INSERTED ") {
+            return Ok(PutResponse::Inserted(input.parse()?));
+        }
+        if let Some(input) = input.strip_prefix("BURIED ") {
+            return Ok(PutResponse::Buried(input.parse()?));
+        }
+        match input {
+            "EXPECTED_CRLF" => Ok(PutResponse::ExpectedCrlf),
+            "JOB_TOO_BIG" => Ok(PutResponse::JobTooBig),
+            "DRAINING" => Ok(PutResponse::Draining),
+            err => Err(err.into()),
+        }
     }
 
     /// The "use" command is for producers. Subsequent put commands will put jobs into
@@ -82,7 +93,13 @@ impl Beanstalk {
     ///
     ///  - `tube` is a name at most 200 bytes. It specifies the tube to use. If the
     ///    tube does not exist, it will be created.
-    pub fn use_(&mut self, tube: &str) -> Result<()> {
+    ///
+    /// The only reply is:
+    ///
+    ///      USING <tube>\r\n
+    ///
+    ///  - `tube` is the name of the tube now being used.
+    pub fn use_(&mut self, tube: &str) -> Result<&str> {
         // request
         write!(self.writer, "use {tube}\r\n")?;
         self.writer.flush()?;
@@ -90,7 +107,11 @@ impl Beanstalk {
         // response
         self.buf.clear();
         self.reader.read_line(&mut self.buf)?;
-        Ok(())
+        let input = self.buf.trim_end_matches("\r\n");
+        if let Some(input) = input.strip_prefix("USING ") {
+            return Ok(input);
+        }
+        Err(input.into())
     }
 
     /// A process that wants to consume jobs from the queue uses "reserve", "delete",
@@ -523,7 +544,7 @@ impl Beanstalk {
     /// The list-tubes command returns a list of all existing tubes. Its form is:
     ///
     ///       list-tubes\r\n
-    pub fn list_tubes(&mut self) -> Result<Vec<Cow<'_, str>>> {
+    pub fn list_tubes(&mut self) -> Result<Vec<&str>> {
         // request
         write!(self.writer, "list-tubes\r\n")?;
         self.writer.flush()?;
@@ -534,17 +555,18 @@ impl Beanstalk {
         let input = self.buf.trim_end_matches("\r\n");
         let bytes = read_ok(input)?;
         let mut data_reader = (&mut self.reader).take(bytes);
-        let mut data = Vec::with_capacity(bytes as usize);
-        data_reader.read_to_end(&mut data)?;
+        self.buf.clear();
+        self.buf.reserve(self.buf.capacity() - bytes as usize);
+        data_reader.read_to_string(&mut self.buf)?;
         self.reader.read_line(&mut self.buf)?; // read ending \r\n
-        Ok(serde_yaml::from_slice(&data)?)
+        Ok(serde_yaml::from_str(&self.buf)?)
     }
 
     /// The list-tube-used command returns the tube currently being used by the
     /// client. Its form is:
     ///
     ///     list-tube-used\r\n
-    pub fn list_tube_used(&mut self) -> Result<Cow<'_, str>> {
+    pub fn list_tube_used(&mut self) -> Result<&str> {
         // request
         write!(self.writer, "list-tube-used\r\n")?;
         self.writer.flush()?;
@@ -554,7 +576,7 @@ impl Beanstalk {
         self.reader.read_line(&mut self.buf)?;
         let input = self.buf.trim_end_matches("\r\n");
         if let Some(input) = input.strip_prefix("USING ") {
-            return Ok(Cow::Borrowed(input));
+            return Ok(input);
         }
         Err(input.into())
     }
@@ -563,7 +585,7 @@ impl Beanstalk {
     /// the client. Its form is:
     ///
     ///     list-tubes-watched\r\n
-    pub fn list_tube_watched(&mut self) -> Result<Vec<Cow<'_, str>>> {
+    pub fn list_tube_watched(&mut self) -> Result<Vec<&str>> {
         // request
         write!(self.writer, "list-tubes-watched\r\n")?;
         self.writer.flush()?;
@@ -574,10 +596,11 @@ impl Beanstalk {
         let input = self.buf.trim_end_matches("\r\n");
         let bytes = read_ok(input)?;
         let mut data_reader = (&mut self.reader).take(bytes);
-        let mut data = Vec::with_capacity(bytes as usize);
-        data_reader.read_to_end(&mut data)?;
+        self.buf.clear();
+        self.buf.reserve(self.buf.capacity() - bytes as usize);
+        data_reader.read_to_string(&mut self.buf)?;
         self.reader.read_line(&mut self.buf)?; // read ending \r\n
-        Ok(serde_yaml::from_slice(&data)?)
+        Ok(serde_yaml::from_str(&self.buf)?)
     }
 
     /// The pause-tube command can delay any new job being reserved for a given time. Its form is:
@@ -629,27 +652,6 @@ pub enum PutResponse {
     /// disconnect and try again later. To put the server in drain mode, send the
     /// SIGUSR1 signal to the process.
     Draining,
-}
-
-impl PutResponse {
-    pub fn parse(input: &str) -> Result<Self> {
-        if let Some(input) = input.strip_prefix("INSERTED ") {
-            return Ok(PutResponse::Inserted(input.parse()?));
-        }
-        if let Some(input) = input.strip_prefix("BURIED ") {
-            return Ok(PutResponse::Buried(input.parse()?));
-        }
-        if input.starts_with("EXPECTED_CRLF") {
-            return Ok(PutResponse::ExpectedCrlf);
-        }
-        if input.starts_with("JOB_TOO_BIG") {
-            return Ok(PutResponse::JobTooBig);
-        }
-        if input.starts_with("DRAINING") {
-            return Ok(PutResponse::Draining);
-        }
-        Err(input.into())
-    }
 }
 
 #[derive(Debug)]
