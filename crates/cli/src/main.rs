@@ -206,8 +206,8 @@ pub enum Cmd {
         )]
         delay: Duration,
 
-        #[arg(long, default_value = "0", help = TTR_HELP)]
-        ttr: u32,
+        #[arg(long, default_value = "0", value_parser = parse_duration, help = TTR_HELP)]
+        ttr: Duration,
 
         #[arg(
             index = 1,

@@ -55,13 +55,20 @@ impl Beanstalk {
     ///
     ///  - `data` is the job body -- a sequence of bytes of length `bytes` from the
     ///    previous line.
-    pub fn put(&mut self, pri: u32, delay: Duration, ttr: u32, data: &[u8]) -> Result<PutResponse> {
+    pub fn put(
+        &mut self,
+        pri: u32,
+        delay: Duration,
+        ttr: Duration,
+        data: &[u8],
+    ) -> Result<PutResponse> {
         // request
         write!(
             self.writer,
-            "put {pri} {} {ttr} {}\r\n",
-            delay.as_secs(),
-            data.len()
+            "put {pri} {delay} {ttr} {bytes}\r\n",
+            delay = delay.as_secs(),
+            ttr = ttr.as_secs(),
+            bytes = data.len(),
         )?;
         self.writer.write_all(data)?;
         self.writer.write_all(b"\r\n")?;
