@@ -1,6 +1,5 @@
 use simple_eyre::eyre::{Report, WrapErr};
 use std::io::{self, Read, Write};
-use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -15,7 +14,7 @@ fn main() -> Result<(), Report> {
 
     let mut bsc = Beanstalk::connect(cli.addr)?;
 
-    if let Some(used) = cli.use_ {
+    if let Some(used) = cli.tube {
         bsc.use_(&used)?;
     }
 
@@ -163,24 +162,23 @@ pub struct Cli {
     cmd: Cmd,
 
     #[arg(
-        name = "use",
         long,
         short,
-        help = "The <tube> name to use for the command. The default tube is \"default\".",
+        help = "The <tube> name to use for the command. The default tube is \"default\".\nIf this is set, the \"use <tube>\" command will be issued prior to the actual command.",
         global = true,
         env
     )]
-    use_: Option<String>,
+    tube: Option<String>,
 
     #[arg(
         long,
         short,
-        help = "The Beanstalkd endpoint to communicate with",
+        help = "The Beanstalkd endpoint to communicate with.",
         default_value = "127.0.0.1:11300",
         global = true,
         env = "BEANSTALKD"
     )]
-    addr: SocketAddr,
+    addr: String,
 }
 
 #[derive(Subcommand)]
@@ -208,7 +206,7 @@ pub enum Cmd {
         )]
         delay: Duration,
 
-        #[arg(long, short, default_value = "0", help = TTR_HELP)]
+        #[arg(long, default_value = "0", help = TTR_HELP)]
         ttr: u32,
 
         #[arg(
@@ -220,12 +218,12 @@ pub enum Cmd {
     },
 
     #[command(
-        about = "This will return a newly-reserved job. If no job is available to be reserved, beanstalkd will wait to send a response until one becomes available."
+        about = "This will return a newly-reserved job.",
+        long_about = "This will return a newly-reserved job.\nIf no job is available to be reserved, beanstalkd will wait to send a response until one becomes available."
     )]
     Reserve {
         #[arg(
-            long,
-            short,
+            index = 1,
             value_parser = parse_duration,
             help = "A timeout value of 0 will cause the server to immediately return either a response or TIMED_OUT.\nA positive value of timeout will limit the amount of time the client will block on the reserve request until a job becomes available.",
             env
@@ -249,10 +247,15 @@ pub enum Cmd {
         #[arg(index = 1, env, help = "The job <id>.")]
         id: Id,
 
-        #[arg(index = 2, env, help = "The new priority to assign to the job.")]
+        #[arg(
+            index = 2,
+            env,
+            default_value = "0",
+            help = "The new priority to assign to the job."
+        )]
         pri: u32,
 
-        #[arg(index = 3, env, value_parser = parse_duration, help = "An integer number of seconds to wait before putting the job in the ready queue.")]
+        #[arg(index = 3, env, default_value="0", value_parser = parse_duration, help = "An integer number of seconds to wait before putting the job in the ready queue.")]
         delay: Duration,
     },
 
@@ -264,7 +267,12 @@ pub enum Cmd {
         #[arg(index = 1, env, help = "The job <id>.")]
         id: Id,
 
-        #[arg(index = 2, env, help = "The new priority to assign to the job.")]
+        #[arg(
+            index = 2,
+            env,
+            default_value = "0",
+            help = "The new priority to assign to the job."
+        )]
         pri: u32,
     },
 

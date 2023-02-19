@@ -556,7 +556,6 @@ impl Beanstalk {
         let bytes = read_ok(input)?;
         let mut data_reader = (&mut self.reader).take(bytes);
         self.buf.clear();
-        self.buf.reserve(self.buf.capacity() - bytes as usize);
         data_reader.read_to_string(&mut self.buf)?;
         self.reader.read_line(&mut self.buf)?; // read ending \r\n
         Ok(serde_yaml::from_str(&self.buf)?)
@@ -597,7 +596,6 @@ impl Beanstalk {
         let bytes = read_ok(input)?;
         let mut data_reader = (&mut self.reader).take(bytes);
         self.buf.clear();
-        self.buf.reserve(self.buf.capacity() - bytes as usize);
         data_reader.read_to_string(&mut self.buf)?;
         self.reader.read_line(&mut self.buf)?; // read ending \r\n
         Ok(serde_yaml::from_str(&self.buf)?)
