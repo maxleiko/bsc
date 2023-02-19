@@ -66,7 +66,7 @@ Inserted(42)
 
 Then, reserve:
 ```sh
-bsc reserve --utf8
+bsc reserve
 ```
 ```json
 {
@@ -75,6 +75,15 @@ bsc reserve --utf8
 }
 ```
 
+> Optionally, you can specify `-d` to the command, to only print the data of the job:
+> ```sh
+> bsc reserve -d
+> ```
+>
+> ```text
+> hello beanstalkd
+> ```
+
 Then, delete:
 ```sh
 bsc delete 42
@@ -82,3 +91,7 @@ bsc delete 42
 ```text
 Deleted
 ```
+
+## TODO/Limitations
+ - TESTS§
+ - consider return exit != 0 when not happy path
