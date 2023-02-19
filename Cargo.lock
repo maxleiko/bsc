@@ -18,19 +18,19 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 name = "bsc"
 version = "0.1.0"
 dependencies = [
- "bsc-lib",
+ "serde",
+ "serde_yaml",
+]
+
+[[package]]
+name = "bsc-cli"
+version = "0.1.0"
+dependencies = [
+ "bsc",
  "clap",
  "eyre",
  "serde_json",
  "simple-eyre",
-]
-
-[[package]]
-name = "bsc-lib"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_yaml",
 ]
 
 [[package]]

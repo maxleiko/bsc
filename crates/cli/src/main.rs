@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use clap::{Parser, Subcommand};
 
-use bsc_lib::*;
+use bsc::*;
 
 fn main() -> Result<(), Report> {
     simple_eyre::install()?;
