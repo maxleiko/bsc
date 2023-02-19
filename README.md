@@ -48,4 +48,37 @@ id   = 42
 data = hello beanstalkd
 ```
 
+### CLI Example
+The same example as the [above](#example), but using the `bsc` CLI.
 
+First, lets set the Beanstalkd endpoint once and for all, so that we don't have to `-a 172.21.0.2:11300` for each command:
+```sh
+export BEANSTALKD="172.21.0.2:11300"
+```
+
+Then, put:
+```sh
+echo -n "hello beanstalkd" | bsc put --ttr 15
+```
+```text
+Inserted(42)
+```
+
+Then, reserve:
+```sh
+bsc reserve --utf8
+```
+```json
+{
+    "id": 42,
+    "data": "hello beanstalkd"
+}
+```
+
+Then, delete:
+```sh
+bsc delete 42
+```
+```text
+Deleted
+```

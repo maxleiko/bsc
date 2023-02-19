@@ -1,3 +1,4 @@
+use serde_json::json;
 use simple_eyre::eyre::{Report, WrapErr};
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
@@ -39,13 +40,8 @@ fn main() -> Result<(), Report> {
             println!("{res:?}");
             Ok(())
         }
-        Cmd::Peek { id, utf8 } => {
+        Cmd::Peek { id } => {
             match bsc.peek(id)? {
-                PeekResponse::Found { data, .. } if utf8 => {
-                    let s = std::str::from_utf8(&data)
-                        .wrap_err("Job's data appears to not be UTF-8 encoded")?;
-                    println!("{s}");
-                }
                 PeekResponse::Found { data, .. } => {
                     io::stdout().write_all(&data)?;
                 }
@@ -53,9 +49,29 @@ fn main() -> Result<(), Report> {
             }
             Ok(())
         }
-        Cmd::Reserve { timeout } => {
-            let res = bsc.reserve(timeout)?;
-            println!("{res:?}");
+        Cmd::Reserve {
+            timeout,
+            data: only_data,
+        } => {
+            match bsc.reserve(timeout)? {
+                ReserveResponse::Reserved { id, data } => {
+                    if only_data {
+                        io::stdout().write_all(&data)?;
+                    } else {
+                        match std::str::from_utf8(&data) {
+                            Ok(data) => serde_json::to_writer(
+                                io::stdout(),
+                                &json!({ "id": id, "data": data }),
+                            )?,
+                            Err(_) => serde_json::to_writer(
+                                io::stdout(),
+                                &json!({ "id": id, "data": data }),
+                            )?,
+                        };
+                    }
+                }
+                res => println!("{res:?}"),
+            }
             Ok(())
         }
         Cmd::Delete { id } => {
@@ -115,36 +131,36 @@ fn main() -> Result<(), Report> {
         }
         Cmd::StatsJob { id } => {
             match bsc.stats_job(id)? {
-                StatsJobResponse::Ok(res) => serde_json::to_writer_pretty(io::stdout(), &res)?,
+                StatsJobResponse::Ok(res) => serde_json::to_writer(io::stdout(), &res)?,
                 StatsJobResponse::NotFound => println!("NotFound"),
             }
             Ok(())
         }
         Cmd::StatsTube { tube } => {
             match bsc.stats_tube(&tube)? {
-                StatsTubeResponse::Ok(res) => serde_json::to_writer_pretty(io::stdout(), &res)?,
+                StatsTubeResponse::Ok(res) => serde_json::to_writer(io::stdout(), &res)?,
                 StatsTubeResponse::NotFound => println!("NotFound"),
             }
             Ok(())
         }
         Cmd::Stats => {
             let res = bsc.stats()?;
-            serde_json::to_writer_pretty(io::stdout(), &res)?;
+            serde_json::to_writer(io::stdout(), &res)?;
             Ok(())
         }
         Cmd::ListTubes => {
             let res = bsc.list_tubes()?;
-            serde_json::to_writer_pretty(io::stdout(), &res)?;
+            serde_json::to_writer(io::stdout(), &res)?;
             Ok(())
         }
         Cmd::ListTubesUsed => {
             let res = bsc.list_tube_used()?;
-            serde_json::to_writer_pretty(io::stdout(), &res)?;
+            serde_json::to_writer(io::stdout(), &res)?;
             Ok(())
         }
         Cmd::ListTubesWatched => {
             let res = bsc.list_tube_watched()?;
-            serde_json::to_writer_pretty(io::stdout(), &res)?;
+            serde_json::to_writer(io::stdout(), &res)?;
             Ok(())
         }
         Cmd::PauseTube { tube, delay } => {
@@ -229,6 +245,9 @@ pub enum Cmd {
             env
         )]
         timeout: Option<Duration>,
+
+        #[arg(long, short, help = "Only return the data.")]
+        data: bool,
     },
 
     #[command(
@@ -306,9 +325,6 @@ pub enum Cmd {
     Peek {
         #[arg(index = 1, env, help = "The job <id> to peek.")]
         id: Id,
-
-        #[arg(long, env, help = "Tries to parse the body as UTF-8 encoded bytes.")]
-        utf8: bool,
     },
 
     #[command(about = "Return the next ready job. Operates only on the currently used tube.")]
